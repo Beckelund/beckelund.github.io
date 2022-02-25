@@ -1,4 +1,4 @@
-//global
+
 
 //constants for gradient
 const Y_AXIS = 1;
@@ -13,14 +13,26 @@ class rigidObject{
   constructor(mass, position, velocity, color){
     this.position = position;   //(p5.Vector)
     this.velocity = velocity;   //(p5.Vector)
-    
     this.color = color;
-    
     this.inv_Mass = 1/mass; // Scalar 
+    this.elasticity = 0.5;
+    this.rotation = 0;
+    this.rotationalVelocity = 0;
   }
-  
+
   impulseResponce(collistionPoint,collistionObject){
+    var r_ap = collistionPoint.copy();
+    r_ap.sub(this.position);
+
+    var r_bp = collistionPoint.copy();
+    r_bp.sub(collistionObject.position);
     
+    var PointVelocity_A = this.velocity.copy();
+    //PointVelocity_A.add(cross())
+    
+    if(1){//dynamic object collision
+      //impulse = -(1+this.elasticity)
+    } 
   }
   
   UpdatePosition(){
@@ -40,6 +52,7 @@ class rigidSpherical extends rigidObject{
   constructor(mass, pos, vel, color, radius){
     super(mass, pos, vel, color);
     this.radius = radius;
+    this.inv_Momevt_of_inertia = radius*radius*mass*0.5;
   }
 
   RenderMe() {
@@ -57,6 +70,7 @@ class rigidRectangular extends rigidObject{
     super(mass, pos, vel, color);
     this.width = width;
     this.height = height;
+    this.inv_Moment_of_inertia = mass * (height^2 + width^2)/12; //https://en.wikipedia.org/wiki/List_of_moments_of_inertia
   }
 
   RenderMe(){
@@ -73,15 +87,9 @@ class rigidRectangular extends rigidObject{
 function DetectCollisions(theObjects) {
  for (var i = 0; i < theObjects.length;i++) {
   for (var j = i+1; j < theObjects.length; j++) {
-    //theObjects[i]
-    //theObjects[j]
-
+    
   }
  }
-}
-
-function CheckCollision() {
-  return true
 }
 
 let all_objects = new Array();
@@ -116,6 +124,10 @@ function draw() {
   all_objects.forEach(element => element.UpdatePosition())
   all_objects.forEach(element => element.UpdateVelocity())
   
+
+  //Collision Detection
+  DetectCollisions(all_objects);
+
   // Background
   setGradient(0, 0, 800, 800, Y_AXIS);
   
