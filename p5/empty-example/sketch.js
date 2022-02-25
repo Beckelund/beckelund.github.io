@@ -80,6 +80,10 @@ function DetectCollisions(theObjects) {
  }
 }
 
+function CheckCollision() {
+  return true
+}
+
 let all_objects = new Array();
 
 function setup() {

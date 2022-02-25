@@ -1,0 +1,5 @@
+{
+  "dependencies": {
+    "p5.collide2d": "^0.7.3"
+  }
+}
