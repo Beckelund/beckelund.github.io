@@ -4,22 +4,31 @@
 const Y_AXIS = 1;
 const X_AXIS = 2;
 
-const gravity = 9.82; //Scalar
+const gravity = 9.82 * 0; //Scalar
 
 let totalTime = 0.0;
+
+//Window size
+
+//Pool table dimensions: 140 x 252 (cm)
+const X_SIZE = 756;
+const Y_SIZE = 200;
 
 //New Classes
 class rigidObject{
   constructor(mass, position, velocity, color){
     this.position = position;   //(p5.Vector)
     this.velocity = velocity;   //(p5.Vector)
+
+    this.acceleration = createVector(0,0)
     this.color = color;
-    this.inv_Mass = 1/mass; // Scalar 
+    this.mass = mass; // Scalar 
     this.elasticity = 0.5;
     this.rotation = 0;
     this.rotationalVelocity = 0;
   }
 
+  /*
   impulseResponce(collistionPoint,collistionObject){
     var r_ap = collistionPoint.copy();
     r_ap.sub(this.position);
@@ -34,6 +43,7 @@ class rigidObject{
       //impulse = -(1+this.elasticity)
     } 
   }
+  */
   
   UpdatePosition(){
     let moveDist = this.velocity.copy()
@@ -42,9 +52,12 @@ class rigidObject{
   }
   
   UpdateVelocity(){
-    const gravity_vector = new createVector(0, 9.82)
+    const gravity_vector = new createVector(0, gravity)
     let velChange = gravity_vector.copy().mult(deltaTime/1000)
+    velChange.add(this.acceleration.mult(deltaTime/1000))
+    this.acceleration.set(0,0)
     this.velocity.add(velChange)
+    this.velocity.mult(1)
   }
 }
 
@@ -53,43 +66,106 @@ class rigidSpherical extends rigidObject{
     super(mass, pos, vel, color);
     this.radius = radius;
     this.inv_Momevt_of_inertia = radius*radius*mass*0.5;
+
+    this.isCollideWall = false;
+    this.isCollideBall = false;
   }
+  
+
 
   RenderMe() {
     push()
-    fill(this.color)
+
+    //Choose color
+    if(this.isCollideBall) fill(color(255, 100, 100))
+    else if(this.isCollideWall) fill(color(100, 255, 100))
+    else fill(this.color)
+
+    this.isCollideWall = false, this.isCollideBall = false;
+    
+    
     translate(this.position.x,this.position.y);
-    //Todo, rotate
-    circle(0,0, this.radius)
+    //Todo, q
+    circle(0,0, this.radius * 2)
+    //line(0,0, this.velocity.x, this.velocity.y)
     pop()
   }
-}
-
-class rigidRectangular extends rigidObject{
-  constructor(mass, pos, vel, color, width, height){
-    super(mass, pos, vel, color);
-    this.width = width;
-    this.height = height;
-    this.inv_Moment_of_inertia = mass * (height^2 + width^2)/12; //https://en.wikipedia.org/wiki/List_of_moments_of_inertia
-  }
-
-  RenderMe(){
-    push()
-    fill(this.color)
-    translate(this.position.x,this.position.y)
-    rotate(PI/3);
-    rect(-this.width/2,-this.height/2,this.width/2,this.height/2)
-    pop()
-  }
-
 }
 
 function DetectCollisions(theObjects) {
  for (var i = 0; i < theObjects.length;i++) {
+  
+  let obj = theObjects[i];
+  
+  WallCollision(obj);
+
+  
+  
   for (var j = i+1; j < theObjects.length; j++) {
     
+    SphereCollision(obj, theObjects[j])
   }
  }
+}
+
+function WallCollision(obj)
+{
+  //@TODO, gör att hastigheten ändras beroende på absolutbelopp
+  if(obj.position.y + obj.radius > Y_SIZE)
+  {
+    //console.log("Collision at " + theObjects[i].position.y)
+    if(obj.velocity.y >= 0) obj.velocity.mult(1, -1);
+    obj.isCollideWall = true;
+  }
+  if(obj.position.y - obj.radius < 0)
+  {
+    //console.log("Collision at " + theObjects[i].position.y)
+    if(obj.velocity.y <= 0) obj.velocity.mult(1, -1);
+    obj.isCollideWall = true;
+  }
+  if(obj.position.x + obj.radius > X_SIZE)
+  {
+    if(obj.velocity.x >= 0) obj.velocity.mult(-1, 1)
+    obj.isCollideWall = true;
+  }
+  if(obj.position.x - obj.radius < 0)
+  {
+    if(obj.velocity.x <= 0) obj.velocity.mult(-1, 1)
+    obj.isCollideWall = true;
+  }
+}
+
+function SphereCollision(objA, objB)
+{
+  var posA = objA.position.copy();
+  var posB = objB.position.copy();
+  
+  let differenceVector = p5.Vector.sub(posA, posB)
+  
+  //Check distance
+  var targetDistance = objA.radius + objB.radius  //Distance for collision to occur
+  //var currentDistance = posA.dist(posB);
+  var currentDistance = differenceVector.mag();
+  
+  if(currentDistance <= targetDistance){
+    
+    var normalVector = differenceVector.normalize()
+    console.log("DiffVec?: " + differenceVector.x + " and: " + differenceVector.y);
+    console.log("Normal?: " + differenceVector.x + " and: " + differenceVector.y);
+    //p5.Vector(lol);
+    var relativeVelocity = p5.Vector.sub(objB.velocity, objA.velocity)
+    //var speed = p5.Vector.dot(normalVector, relativeVelocity);
+    let speed = relativeVelocity.x * normalVector.x + relativeVelocity.y * normalVector.y;
+    
+    console.log("speed " + speed);
+
+    objA.isCollideBall = true;
+    objB.isCollideBall = true;
+    if(speed >= 0) {
+      objA.velocity.add(speed * normalVector.x, speed * normalVector.y)
+      objB.velocity.sub(speed * normalVector.x, speed * normalVector.y)
+    }
+  }
 }
 
 let all_objects = new Array();
@@ -97,53 +173,116 @@ let all_objects = new Array();
 function setup() {
 
   let circlePos = new createVector(100, 100)
-  let circleVel = new createVector(0, -10)
+  let circleVel = new createVector(20, 10)
   let circleColor = color(255, 204, 170)
 
-  all_objects.push(new rigidSpherical(1.0, circlePos, circleVel, circleColor, 50.0))
+  all_objects.push(new rigidSpherical(1.0, circlePos, circleVel, circleColor, 20.0))
   
-  all_objects.push(new rigidRectangular(1.0, new createVector(200,100),  new createVector(2,-1), circleColor,100,100))
   
-  createCanvas(800, 800);
+  createCanvas(X_SIZE, Y_SIZE);
+
+
 }
 
 function mousePressed() {
-  let circlePos = new createVector(mouseX, mouseY)
-  let circleVel = new createVector(0, -10)
-  let circleColor = color(255, 204, 170)
-
-  all_objects.push(new rigidSpherical(1.0, circlePos, circleVel, circleColor, 50.0))
+  if(mouseButton === RIGHT)
+  {
+    
+    let circleVel = new createVector(50, -10)
+    let circleColor = color(255, 204, 170)
+    let circlePos = new createVector(mouseX, mouseY)
+    all_objects.push(new rigidSpherical(1.0, circlePos, circleVel, circleColor, 10.0))
+  }
 }
 
-function draw() {
+var dragObject = null;
+var hasObject = false;
 
+var frames = 0;
+var totalEnergy = 0;
+
+function draw() {
+  
   totalTime += deltaTime/1000;
   //console.log(totalTime)
-
+  
   //Physics loop
   all_objects.forEach(element => element.UpdatePosition())
   all_objects.forEach(element => element.UpdateVelocity())
   
-
+  
   //Collision Detection
   DetectCollisions(all_objects);
-
+  
   // Background
   setGradient(0, 0, 800, 800, Y_AXIS);
-  
-  
-  
   
   //Render loop
   all_objects.forEach(element => element.RenderMe())
   
+  //Mouse features
+  
+  console.log(dragObject)
+  let mouseVector = createVector(mouseX, mouseY)
+  if(mouseIsPressed) {
+    drawCursor()
+    
+    if(dragObject == null)
+    {
+      
+      for(var i = 0; i < all_objects.length; i++) {
+        let distance = p5.Vector.sub(mouseVector, all_objects[i].position).mag()
+        
+        if(distance < all_objects[i].radius)
+        {
+          all_objects[i].isCollideWall = true;
+          dragObject = all_objects[i];
+          //break;
+        }
+      }
+    }
+      
+  }
+  else
+  {
+    dragObject = null;
+  }
+
+
+  //Drag Object
+  if(dragObject != null)
+  {
+    let v1 = p5.Vector.sub(mouseVector, dragObject.position)
+    dragObject.acceleration.set(v1.mult(10))
+    line(dragObject.position.x, dragObject.position.y, mouseX, mouseY)
+  }
   
 
-  //Example Code
-  let circleColor = color(255, 204, 0)
-  fill(color(255, 204, 0));
-  circle(50, 100, 10);
-}  
+  frames++;
+  //Display energy
+  if(frames % 5 == 0)
+  {
+    totalEnergy = 0;
+    all_objects.forEach(element => totalEnergy += (1/2)*element.velocity.mag()*element.velocity.mag())
+  }
+    
+    
+  let energyDisplay = 0;
+  if(totalEnergy > 1000) energyDisplay = Math.round(totalEnergy/1000) + " K"
+  else energyDisplay = Math.round(totalEnergy)
+
+  text('total energy: ' + energyDisplay, 10, 30)
+
+}
+
+
+function drawCursor() {
+    push()
+      fill(color(100,100,150))
+      circle(mouseX, mouseY, 20)
+    pop()
+  
+}
 
 function setGradient(x, y, w, h, axis) {
   noFill();
