@@ -4,7 +4,6 @@
 const Y_AXIS = 1;
 const X_AXIS = 2;
 
-const gravity = 9.82 * 0; //Scalar
 
 let totalTime = 0.0;
 
@@ -13,6 +12,10 @@ let totalTime = 0.0;
 //Pool table dimensions: 140 x 252 (cm)
 const X_SIZE = 756;
 const Y_SIZE = 200;
+
+//Physics settings
+const gravity = 9.82 * 0; //Scalar
+const wall_elasticity = 0.5
 
 //New Classes
 class rigidObject{
@@ -52,6 +55,8 @@ class rigidObject{
   }
   
   UpdateVelocity(){
+
+    //Acceleration calc
     const gravity_vector = new createVector(0, gravity)
     let velChange = gravity_vector.copy().mult(deltaTime/1000)
     velChange.add(this.acceleration.mult(deltaTime/1000))
@@ -87,7 +92,7 @@ class rigidSpherical extends rigidObject{
     translate(this.position.x,this.position.y);
     //Todo, q
     circle(0,0, this.radius * 2)
-    //line(0,0, this.velocity.x, this.velocity.y)
+    line(0,0, this.velocity.x, this.velocity.y)
     pop()
   }
 }
@@ -114,23 +119,23 @@ function WallCollision(obj)
   if(obj.position.y + obj.radius > Y_SIZE)
   {
     //console.log("Collision at " + theObjects[i].position.y)
-    if(obj.velocity.y >= 0) obj.velocity.mult(1, -1);
+    if(obj.velocity.y >= 0) obj.velocity.mult(1, -1 * wall_elasticity);
     obj.isCollideWall = true;
   }
   if(obj.position.y - obj.radius < 0)
   {
     //console.log("Collision at " + theObjects[i].position.y)
-    if(obj.velocity.y <= 0) obj.velocity.mult(1, -1);
+    if(obj.velocity.y <= 0) obj.velocity.mult(1, -1 * wall_elasticity);
     obj.isCollideWall = true;
   }
   if(obj.position.x + obj.radius > X_SIZE)
   {
-    if(obj.velocity.x >= 0) obj.velocity.mult(-1, 1)
+    if(obj.velocity.x >= 0) obj.velocity.mult(-1 * wall_elasticity, 1)
     obj.isCollideWall = true;
   }
   if(obj.position.x - obj.radius < 0)
   {
-    if(obj.velocity.x <= 0) obj.velocity.mult(-1, 1)
+    if(obj.velocity.x <= 0) obj.velocity.mult(-1 * wall_elasticity, 1)
     obj.isCollideWall = true;
   }
 }
@@ -150,20 +155,21 @@ function SphereCollision(objA, objB)
   if(currentDistance <= targetDistance){
     
     var normalVector = differenceVector.normalize()
-    console.log("DiffVec?: " + differenceVector.x + " and: " + differenceVector.y);
-    console.log("Normal?: " + differenceVector.x + " and: " + differenceVector.y);
+    //console.log("DiffVec?: " + differenceVector.x + " and: " + differenceVector.y);
+    //console.log("Normal?: " + differenceVector.x + " and: " + differenceVector.y);
+    //console.log("speed " + speed);
     //p5.Vector(lol);
     var relativeVelocity = p5.Vector.sub(objB.velocity, objA.velocity)
     //var speed = p5.Vector.dot(normalVector, relativeVelocity);
     let speed = relativeVelocity.x * normalVector.x + relativeVelocity.y * normalVector.y;
     
-    console.log("speed " + speed);
+    let impulse = 2 * speed / (objA.mass + objB.mass)
 
     objA.isCollideBall = true;
     objB.isCollideBall = true;
     if(speed >= 0) {
-      objA.velocity.add(speed * normalVector.x, speed * normalVector.y)
-      objB.velocity.sub(speed * normalVector.x, speed * normalVector.y)
+      objA.velocity.add(impulse * objB.mass * normalVector.x, impulse * objB.mass * normalVector.y)
+      objB.velocity.sub(impulse * objA.mass * normalVector.x, impulse * objA.mass * normalVector.y)
     }
   }
 }
@@ -172,14 +178,40 @@ let all_objects = new Array();
 
 function setup() {
 
+  /*
   let circlePos = new createVector(100, 100)
   let circleVel = new createVector(20, 10)
   let circleColor = color(255, 204, 170)
 
   all_objects.push(new rigidSpherical(1.0, circlePos, circleVel, circleColor, 20.0))
+  */
+
+  let circlePos1 = new createVector(100, 100)
+  let circleVel1 = new createVector(250, 0)
+  let circleColor1 = color(255, 204, 170)
+
+  all_objects.push(new rigidSpherical(1.0, circlePos1, circleVel1, circleColor1, 10.0))
+
+  let circlePos2 = new createVector(300, 100)
+  let circleVel2 = new createVector(0, 0)
+  let circleColor2 = color(255, 204, 170)
+
+  all_objects.push(new rigidSpherical(1.0, circlePos2, circleVel2, circleColor2, 10.0))
+
+  let circlePos3 = new createVector(321, 100)
+  let circleVel3 = new createVector(0, 0)
+  let circleColor3 = color(255, 204, 170)
+
+  all_objects.push(new rigidSpherical(1.0, circlePos3, circleVel3, circleColor3, 10.0))
+
+  let circlePos4 = new createVector(342, 100)
+  let circleVel4 = new createVector(0, 0)
+  let circleColor4 = color(255, 204, 170)
+
+  all_objects.push(new rigidSpherical(1.0, circlePos4, circleVel4, circleColor4, 10.0))
   
-  
-  createCanvas(X_SIZE, Y_SIZE);
+  let window = createCanvas(X_SIZE, Y_SIZE);
+  window.parent("simulation_window")
 
 
 }
@@ -189,9 +221,9 @@ function mousePressed() {
   {
     
     let circleVel = new createVector(50, -10)
-    let circleColor = color(255, 204, 170)
+    let circleColor = color(255, 255, 170)
     let circlePos = new createVector(mouseX, mouseY)
-    all_objects.push(new rigidSpherical(1.0, circlePos, circleVel, circleColor, 10.0))
+    all_objects.push(new rigidSpherical(1.0, circlePos, circleVel, circleColor, 15.0))
   }
 }
 
@@ -215,7 +247,7 @@ function draw() {
   DetectCollisions(all_objects);
   
   // Background
-  setGradient(0, 0, 800, 800, Y_AXIS);
+  setGradient(0, 0, X_SIZE, Y_SIZE, Y_AXIS);
   
   //Render loop
   all_objects.forEach(element => element.RenderMe())
@@ -263,7 +295,7 @@ function draw() {
   if(frames % 5 == 0)
   {
     totalEnergy = 0;
-    all_objects.forEach(element => totalEnergy += (1/2)*element.velocity.mag()*element.velocity.mag())
+    all_objects.forEach(element => totalEnergy += (1/2)*element.mass*element.velocity.mag()*element.velocity.mag())
   }
     
     
@@ -287,8 +319,8 @@ function drawCursor() {
 function setGradient(x, y, w, h, axis) {
   noFill();
 
-  c1 = color(204, 102, 0);
-  c2 = color(0, 102, 153);
+  c1 = color(68, 124, 82);
+  c2 = color(58, 88, 66);
 
   if (axis === Y_AXIS) {
     // Top to bottom gradient

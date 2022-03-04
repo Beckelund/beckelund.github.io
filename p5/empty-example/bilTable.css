@@ -8,6 +8,7 @@ html, body {
     margin: 0;
     display: flex;
     
+    background-image: linear-gradient(to bottom, rgb(57, 67, 109), rgb(13, 21, 54));
     justify-content: center;
   
 
@@ -15,13 +16,13 @@ html, body {
   }
 .test{
     height: 10vh;
-    background-color:  ; 
-   padding-top: 10px;
+    background-color:  rgb(62, 81, 167);
+    padding-top: 10px;
     top: 0;
 }
 h1 {
    
-    color: rgb(81, 81, 94);
+    color: rgb(255, 255, 255);
     margin-left: 10px;
   }
 .body{
@@ -31,4 +32,13 @@ h1 {
     align-items: center;
 
 
+}
+
+#simulation_window {
+  border-radius: 25px;
+}
+
+#defaultCanvas0 {
+  border-radius: 5px;
+  border: 2px solid rgb(95, 71, 42)
 }
