@@ -243,7 +243,15 @@ function SphereCollision(objA, objB)
     if(speed >= 0) {
       objA.velocity.add(impulse * objB.mass * normalVector.x, impulse * objB.mass * normalVector.y)
       objB.velocity.sub(impulse * objA.mass * normalVector.x, impulse * objA.mass * normalVector.y)
-      sound_collision.play()
+      
+      //Play sound
+      const max_volume = 0.5;
+      let collide_volume = (objA.radius + objB.radius)/500;
+      if(collide_volume > max_volume) collide_volume = max_volume;
+      
+      console.log(round(speed) + " gives volume: " + collide_volume)
+      sound_collision.setVolume(collide_volume);
+      sound_collision.play();
     }
   }
 }
@@ -255,8 +263,9 @@ let all_objects = new Array();
 let sound_collision;
 function preload() {
   soundFormats('wav','ogg')
-  sound_collision = loadSound('sounds/ball_clack1.wav')  //https://freesound.org/people/Za-Games/sounds/539854/
+  sound_collision = loadSound('sounds/ball_clack2.wav')  //https://freesound.org/people/Za-Games/sounds/539854/
   //https://freesound.org/people/Atlas72/sounds/584212/
+  //https://freesound.org/people/jayroo9/sounds/?page=3#sound
 }
 
 function setup() {
