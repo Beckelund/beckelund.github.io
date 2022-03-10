@@ -10,12 +10,18 @@ let totalTime = 0.0;
 //Window size
 
 //Pool table dimensions: 140 x 252 (cm)
-const X_SIZE = 756;
-const Y_SIZE = 200;
+const X_SIZE = 252*2;
+const Y_SIZE = 140*2;
 
 //Physics settings
 const gravity = 9.82 * 0; //Scalar
-const wall_elasticity = 0.5
+
+//Friction
+const frictionCoef = 0.03;
+
+//Elasticity
+const wall_elasticity = 0.75
+const ball_elasticity = 0.99
 
 //New Classes
 class rigidObject{
@@ -57,12 +63,26 @@ class rigidObject{
   UpdateVelocity(){
 
     //Acceleration calc
+    let velChange = new createVector(0, 0);
+
+    //Gravity
     const gravity_vector = new createVector(0, gravity)
-    let velChange = gravity_vector.copy().mult(deltaTime/1000)
+    velChange.add(gravity_vector.copy().mult(deltaTime/1000))
+
+    //Friction
+    let direction = this.velocity.copy().normalize();
+    let friction = direction.copy().mult(9.82).mult(frictionCoef);
+    //console.log(friction)
+
+    //Other Acceleration
     velChange.add(this.acceleration.mult(deltaTime/1000))
+
+    velChange.sub(friction)
     this.acceleration.set(0,0)
+
+
     this.velocity.add(velChange)
-    this.velocity.mult(0.95)
+    this.velocity.mult(1)
   }
 }
 
@@ -81,18 +101,72 @@ class rigidSpherical extends rigidObject{
   RenderMe() {
     push()
 
+    //Settings
+    const q = 0.5;  //Quota for how much darker color2 is
+
+    //Select colors
+    let color1 = color(this.color.x, this.color.y, this.color.z)
+    let color2 = color(this.color.x * q, this.color.y * q, this.color.z * q)
+
     //Choose color
+    /*
     if(this.isCollideBall) fill(color(255, 100, 100))
     else if(this.isCollideWall) fill(color(100, 255, 100))
     else fill(this.color)
-
     this.isCollideWall = false, this.isCollideBall = false;
+    */
+
+    translate(this.position.x, this.position.y);
     
+    //Outer circle
+    push()
+      fill(color1)
+      strokeWeight(0)
+      circle(0, 0, this.radius * 2)
+    pop()
+
+    //Middle circle
+    push()
+      fill(color2)
+      strokeWeight(0)
+      stroke(color2)
+      circle(0, 0, this.radius * 1.5)
+    pop()
+
+    //Inner circle
+    push()
+      fill(color1)
+      strokeWeight(0)
+      stroke(color2)
+      circle(0, 0, this.radius * 1)
+    pop()
+
+    const debug = true;
+
+    if(debug == true)
+    {
+      //Draw Speed Vector https://editor.p5js.org/odmundeetgen/sketches/qqmp0fVSK
+      push()
+        let color3 = color(this.color.x, this.color.y, this.color.z, 0)
+        strokeWeight(1)
+        var grad = window.drawingContext.createLinearGradient(0, 0, this.velocity.x, this.velocity.y);
+        grad.addColorStop(0, color1);
+        grad.addColorStop(1, color3);
+        
+        window.drawingContext.strokeStyle = grad;
+        
+        line(0,0, this.velocity.x, this.velocity.y)
+      pop()
+
+      //Write Speed
+      push()
+        let speed_text = round(this.velocity.mag())
+        textSize(this.radius)
+        fill(color(255, 255, 255))
+        text(speed_text, -3.5,-10)
+      pop()
+    }
     
-    translate(this.position.x,this.position.y);
-    //Todo, q
-    circle(0,0, this.radius * 2)
-    line(0,0, this.velocity.x, this.velocity.y)
     pop()
   }
 }
@@ -155,14 +229,13 @@ function SphereCollision(objA, objB)
   if(currentDistance <= targetDistance){
     
     var normalVector = differenceVector.normalize()
-    //console.log("DiffVec?: " + differenceVector.x + " and: " + differenceVector.y);
-    //console.log("Normal?: " + differenceVector.x + " and: " + differenceVector.y);
-    //console.log("speed " + speed);
-    //p5.Vector(lol);
     var relativeVelocity = p5.Vector.sub(objB.velocity, objA.velocity)
-    //var speed = p5.Vector.dot(normalVector, relativeVelocity);
-    let speed = relativeVelocity.x * normalVector.x + relativeVelocity.y * normalVector.y;
+
+    let speed = relativeVelocity.x * normalVector.x + relativeVelocity.y * normalVector.y;  //Dot product
     
+    //Coefficient of restitution
+    speed *= ball_elasticity
+
     let impulse = 2 * speed / (objA.mass + objB.mass)
 
     objA.isCollideBall = true;
@@ -170,14 +243,25 @@ function SphereCollision(objA, objB)
     if(speed >= 0) {
       objA.velocity.add(impulse * objB.mass * normalVector.x, impulse * objB.mass * normalVector.y)
       objB.velocity.sub(impulse * objA.mass * normalVector.x, impulse * objA.mass * normalVector.y)
+      //sound_collision.play()
     }
   }
 }
 
 let all_objects = new Array();
 
+//Sound Preload
+/*
+let sound_collision;
+function preload() {
+  soundFormats('wav','ogg')
+  sound_collision = loadSound('sounds/ball_clack1.wav')  //https://freesound.org/people/Za-Games/sounds/539854/
+  //https://freesound.org/people/Atlas72/sounds/584212/
+}
+*/
 function setup() {
 
+  textFont('Helvetica')
   /*
   let circlePos = new createVector(100, 100)
   let circleVel = new createVector(20, 10)
@@ -188,25 +272,25 @@ function setup() {
 
   let circlePos1 = new createVector(100, 100)
   let circleVel1 = new createVector(250, 0)
-  let circleColor1 = color(255, 204, 170)
+  let circleColor1 = new createVector(255, 100, 100)
 
   all_objects.push(new rigidSpherical(1.0, circlePos1, circleVel1, circleColor1, 10.0))
 
   let circlePos2 = new createVector(300, 100)
   let circleVel2 = new createVector(0, 0)
-  let circleColor2 = color(255, 204, 170)
+  let circleColor2 = new createVector(255, 204, 170)
 
   all_objects.push(new rigidSpherical(1.0, circlePos2, circleVel2, circleColor2, 10.0))
 
   let circlePos3 = new createVector(321, 100)
   let circleVel3 = new createVector(0, 0)
-  let circleColor3 = color(255, 204, 170)
+  let circleColor3 = new createVector(255, 204, 170)
   
   all_objects.push(new rigidSpherical(1.0, circlePos3, circleVel3, circleColor3, 10.0))
   
   let circlePos4 = new createVector(342, 100)
   let circleVel4 = new createVector(0, 0)
-  let circleColor4 = color(255, 204, 170)
+  let circleColor4 = new createVector(255, 204, 170)
   
   all_objects.push(new rigidSpherical(1.0, circlePos4, circleVel4, circleColor4, 10.0))
   
@@ -228,7 +312,7 @@ function mousePressed() {
   {
     
     let circleVel = new createVector(50, -10)
-    let circleColor = color(255, 255, 170)
+    let circleColor = new createVector(255, 255, 170)
     let circlePos = new createVector(mouseX, mouseY)
     all_objects.push(new rigidSpherical(1.0, circlePos, circleVel, circleColor, 5.0))
   }
@@ -261,7 +345,7 @@ function draw() {
   
   //Mouse features
   
-  console.log(dragObject)
+  //console.log(dragObject)
   let mouseVector = createVector(mouseX, mouseY)
   if(mouseIsPressed) {
     drawCursor()
@@ -310,13 +394,18 @@ function draw() {
   if(totalEnergy > 1000) energyDisplay = Math.round(totalEnergy/1000) + " K"
   else energyDisplay = Math.round(totalEnergy)
 
+  push()
+  textSize(16)
+  fill('white')
   text('total energy: ' + energyDisplay, 10, 30)
+  pop()
 }
 
 
 function drawCursor() {
     push()
-      fill(color(100,100,150))
+      fill(color(100,100,150,100))
+      strokeWeight(0)
       circle(mouseX, mouseY, 20)
     pop()
   
@@ -326,16 +415,18 @@ function drawCursor() {
 function setGradient(x, y, w, h, axis) {
   noFill();
 
-  c1 = color(68, 124, 82);
-  c2 = color(58, 88, 66);
+  c1 = color(100, 50, 70);
+  c2 = color(20, 20, 70);
 
   if (axis === Y_AXIS) {
     // Top to bottom gradient
     for (let i = y; i <= y + h; i++) {
       let inter = map(i, y, y + h, 0, 1);
       let c = lerpColor(c1, c2, inter);
+      push()
       stroke(c);
       line(x, i, x + w, i);
+      pop()
     }
   }
 }
