@@ -62,7 +62,7 @@ class rigidObject{
     velChange.add(this.acceleration.mult(deltaTime/1000))
     this.acceleration.set(0,0)
     this.velocity.add(velChange)
-    this.velocity.mult(1)
+    this.velocity.mult(0.95)
   }
 }
 
@@ -201,19 +201,26 @@ function setup() {
   let circlePos3 = new createVector(321, 100)
   let circleVel3 = new createVector(0, 0)
   let circleColor3 = color(255, 204, 170)
-
+  
   all_objects.push(new rigidSpherical(1.0, circlePos3, circleVel3, circleColor3, 10.0))
-
+  
   let circlePos4 = new createVector(342, 100)
   let circleVel4 = new createVector(0, 0)
   let circleColor4 = color(255, 204, 170)
-
+  
   all_objects.push(new rigidSpherical(1.0, circlePos4, circleVel4, circleColor4, 10.0))
   
   let window = createCanvas(X_SIZE, Y_SIZE);
-  window.parent("simulation_window")
+  window.parent("simulation-window")
+  
 
+  drawUI();
+}
 
+function drawUI() {
+  let rSlider = createSlider(0, 255, 100);
+  rSlider.position(20, 20);
+  rSlider.parent("UI-window")
 }
 
 function mousePressed() {
@@ -223,7 +230,7 @@ function mousePressed() {
     let circleVel = new createVector(50, -10)
     let circleColor = color(255, 255, 170)
     let circlePos = new createVector(mouseX, mouseY)
-    all_objects.push(new rigidSpherical(1.0, circlePos, circleVel, circleColor, 15.0))
+    all_objects.push(new rigidSpherical(1.0, circlePos, circleVel, circleColor, 5.0))
   }
 }
 
@@ -304,7 +311,6 @@ function draw() {
   else energyDisplay = Math.round(totalEnergy)
 
   text('total energy: ' + energyDisplay, 10, 30)
-
 }
 
 
@@ -315,6 +321,7 @@ function drawCursor() {
     pop()
   
 }
+
 
 function setGradient(x, y, w, h, axis) {
   noFill();
