@@ -276,7 +276,7 @@ function preload() {
   //https://freesound.org/people/jayroo9/sounds/?page=3#sound
 }
 
-function setup() {ö
+function setup() {
   
   textFont('Helvetica')
   /*
