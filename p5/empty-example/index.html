@@ -17,24 +17,42 @@
       }
     </style>
 
+    <!--Fonts-->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@200;400;700&display=swap" rel="stylesheet">
+
   </head>
 
   <body>
+    <script src="../p5.js"></script>
+    <script src="../addons/p5.sound.js"></script> 
+    <script src="sketch.js"></script>
+
+
     <div class="test"><h1> Hockey table simulation </h1></div>
-    <main>
-      <script src="../p5.js"></script>
+    
+    <div id="simulation-wrapper">
       <!--Sound support-->
       <!-- 
       -->
-        <script src="../addons/p5.sound.js"></script> 
-      <script src="sketch.js"></script>
       <div id="simulation-window">
         <!--Här kommer canvas att läggas från simuleringen-->
       </div>
       <div id="UI-window">
-        
+        <div id="UI-tab1" class="UI-tab">
+
+        </div>
+        <div id="UI-tab2" class="UI-tab">
+
+        </div>
+        <div id="UI-tab3" class="UI-tab">
+
+        </div>
       </div>
+    </div>
       
-    </main>
+      
+    
   </body>
 </html>

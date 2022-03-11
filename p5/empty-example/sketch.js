@@ -10,8 +10,17 @@ let totalTime = 0.0;
 //Window size
 
 //Pool table dimensions: 140 x 252 (cm)
-const X_SIZE = 252*2;
-const Y_SIZE = 140*2;
+var X_SIZE = 252*4;
+var Y_SIZE = 140*4;
+
+/*
+function windowResized() {
+  let width = windowWidth * 0.6
+  resizeCanvas(width, width/2);
+  X_SIZE = width;
+  Y_SIZE = width/2;
+}
+*/
 
 //Physics settings
 const gravity = 9.82 * 0; //Scalar
@@ -141,7 +150,7 @@ class rigidSpherical extends rigidObject{
       circle(0, 0, this.radius * 1)
     pop()
 
-    const debug = true;
+    const debug = false;
 
     if(debug == true)
     {
@@ -171,20 +180,15 @@ class rigidSpherical extends rigidObject{
   }
 }
 
-function DetectCollisions(theObjects) {
- for (var i = 0; i < theObjects.length;i++) {
-  
-  let obj = theObjects[i];
-  
-  WallCollision(obj);
+function DetectCollisions(obj) {
+  for (var i = 0; i < obj.length;i++) {
 
-  
-  
-  for (var j = i+1; j < theObjects.length; j++) {
-    
-    SphereCollision(obj, theObjects[j])
+    WallCollision(obj[i]);
+
+    for (var j = i+1; j < obj.length; j++) {
+      SphereCollision(obj[i], obj[j])
+    }
   }
- }
 }
 
 function WallCollision(obj)
@@ -245,16 +249,20 @@ function SphereCollision(objA, objB)
       objB.velocity.sub(impulse * objA.mass * normalVector.x, impulse * objA.mass * normalVector.y)
       
       //Play sound
-      const max_volume = 0.5;
+      const max_volume = 0.01;
       let collide_volume = (objA.radius + objB.radius)/500;
       if(collide_volume > max_volume) collide_volume = max_volume;
       
-      console.log(round(speed) + " gives volume: " + collide_volume)
-      sound_collision.setVolume(collide_volume);
-      sound_collision.play();
+      if(speed > 100)
+      {
+        console.log(round(speed) + " gives volume: " + collide_volume)
+        sound_collision.setVolume(collide_volume);
+        sound_collision.play();
+      }
     }
   }
 }
+
 
 let all_objects = new Array();
 
@@ -263,67 +271,99 @@ let all_objects = new Array();
 let sound_collision;
 function preload() {
   soundFormats('wav','ogg')
-  sound_collision = loadSound('sounds/ball_clack2.wav')  //https://freesound.org/people/Za-Games/sounds/539854/
+  sound_collision = loadSound('sounds/ball_clack1.wav')  //https://freesound.org/people/Za-Games/sounds/539854/
   //https://freesound.org/people/Atlas72/sounds/584212/
   //https://freesound.org/people/jayroo9/sounds/?page=3#sound
 }
 
-function setup() {
-
+function setup() {ö
+  
   textFont('Helvetica')
   /*
   let circlePos = new createVector(100, 100)
   let circleVel = new createVector(20, 10)
   let circleColor = color(255, 204, 170)
-
+  
   all_objects.push(new rigidSpherical(1.0, circlePos, circleVel, circleColor, 20.0))
   */
-
-  let circlePos1 = new createVector(100, 100)
-  let circleVel1 = new createVector(250, 0)
-  let circleColor1 = new createVector(255, 100, 100)
-
-  all_objects.push(new rigidSpherical(1.0, circlePos1, circleVel1, circleColor1, 10.0))
-
-  let circlePos2 = new createVector(300, 100)
-  let circleVel2 = new createVector(0, 0)
-  let circleColor2 = new createVector(255, 204, 170)
-
-  all_objects.push(new rigidSpherical(1.0, circlePos2, circleVel2, circleColor2, 10.0))
-
-  let circlePos3 = new createVector(321, 100)
-  let circleVel3 = new createVector(0, 0)
-  let circleColor3 = new createVector(255, 204, 170)
-  
-  all_objects.push(new rigidSpherical(1.0, circlePos3, circleVel3, circleColor3, 10.0))
-  
-  let circlePos4 = new createVector(342, 100)
-  let circleVel4 = new createVector(0, 0)
-  let circleColor4 = new createVector(255, 204, 170)
-  
-  all_objects.push(new rigidSpherical(1.0, circlePos4, circleVel4, circleColor4, 10.0))
-  
-  let window = createCanvas(X_SIZE, Y_SIZE);
-  window.parent("simulation-window")
-  
-
-  drawUI();
+ 
+ let circlePos1 = new createVector(100, 100)
+ let circleVel1 = new createVector(250, 0)
+ let circleColor1 = new createVector(255, 100, 100)
+ 
+ all_objects.push(new rigidSpherical(1.0, circlePos1, circleVel1, circleColor1, 10.0))
+ 
+ let circlePos2 = new createVector(300, 100)
+ let circleVel2 = new createVector(0, 0)
+ let circleColor2 = new createVector(255, 204, 170)
+ 
+ all_objects.push(new rigidSpherical(1.0, circlePos2, circleVel2, circleColor2, 10.0))
+ 
+ let circlePos3 = new createVector(321, 100)
+ let circleVel3 = new createVector(0, 0)
+ let circleColor3 = new createVector(255, 204, 170)
+ 
+ all_objects.push(new rigidSpherical(1.0, circlePos3, circleVel3, circleColor3, 10.0))
+ 
+ let circlePos4 = new createVector(342, 100)
+ let circleVel4 = new createVector(0, 0)
+ let circleColor4 = new createVector(255, 204, 170)
+ 
+ all_objects.push(new rigidSpherical(1.0, circlePos4, circleVel4, circleColor4, 10.0))
+ 
+ 
+ let window = createCanvas(X_SIZE, Y_SIZE);
+ window.parent("simulation-window")
+ document.addEventListener('contextmenu', event => event.preventDefault());
+ 
+ drawUI();
 }
+
+var UI_radius = 20;
+var UI_mass = 20;
+
+var UI_color_random = true;
 
 function drawUI() {
+
+  //Tab 1
   let rSlider = createSlider(0, 255, 100);
-  rSlider.position(20, 20);
-  rSlider.parent("UI-window")
+  rSlider.parent("UI-tab1")
+
+  //Spawn Ball size
+  let spawnSize = createInput('20')
+  spawnSize.parent("UI-tab1")
+  spawnSize.input(setSpawnSize)
+
+  //Spawn Ball Mass
+  let spawnMass = createInput('20')
+  spawnMass.parent("UI-tab1")
+  spawnMass.input(setSpawnMass)
+
+  //Tab 2
+  let despawnAll = createButton('Remove all balls')
+  despawnAll.parent("UI-tab2")
+  despawnAll.mousePressed(DespawnAll)
 }
+
+function setSpawnSize() {UI_radius = Number(this.value())}
+function setSpawnMass() {UI_mass = Number(this.value())}
+
+function DespawnAll() {all_objects = new Array()}
 
 function mousePressed() {
   if(mouseButton === RIGHT)
   {
     
-    let circleVel = new createVector(50, -10)
-    let circleColor = new createVector(255, 255, 170)
+    let circleVel = new createVector(0, 0)
+
+    //Color
+    let circleColor = new createVector(255, 255, 255); 
+    if(UI_color_random == true) circleColor = new createVector(random(255), random(255), random(255))
     let circlePos = new createVector(mouseX, mouseY)
-    all_objects.push(new rigidSpherical(1.0, circlePos, circleVel, circleColor, 5.0))
+    let circleRadius = UI_radius
+    let circleMass = UI_mass
+    all_objects.push(new rigidSpherical(circleMass, circlePos, circleVel, circleColor, circleRadius))
   }
 }
 
@@ -373,14 +413,14 @@ function draw() {
         }
       }
     }
-      
+    
   }
   else
   {
     dragObject = null;
   }
-
-
+  
+  
   //Drag Object
   if(dragObject != null)
   {
@@ -397,12 +437,12 @@ function draw() {
     totalEnergy = 0;
     all_objects.forEach(element => totalEnergy += (1/2)*element.mass*element.velocity.mag()*element.velocity.mag())
   }
-    
-    
+  
+  
   let energyDisplay = 0;
   if(totalEnergy > 1000) energyDisplay = Math.round(totalEnergy/1000) + " K"
   else energyDisplay = Math.round(totalEnergy)
-
+  
   push()
   textSize(16)
   fill('white')
@@ -412,21 +452,21 @@ function draw() {
 
 
 function drawCursor() {
-    push()
-      fill(color(100,100,150,100))
-      strokeWeight(0)
-      circle(mouseX, mouseY, 20)
-    pop()
+  push()
+  fill(color(100,100,150,100))
+  strokeWeight(0)
+  circle(mouseX, mouseY, 20)
+  pop()
   
 }
 
 
 function setGradient(x, y, w, h, axis) {
   noFill();
-
+  
   c1 = color(100, 50, 70);
   c2 = color(20, 20, 70);
-
+  
   if (axis === Y_AXIS) {
     // Top to bottom gradient
     for (let i = y; i <= y + h; i++) {

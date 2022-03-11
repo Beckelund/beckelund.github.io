@@ -1,41 +1,85 @@
 html, body {
-    height: 100%;
-    font-family: 'DM Serif Display', serif;
-  }
+  height: 100%;
+  font-family: 'DM Serif Display', serif;
+  background-image: linear-gradient(to bottom, rgb(57, 67, 109), rgb(13, 21, 54));
+}
 
-  body main{
-    height: 100%;
-    margin: 0;
-    display: flex;
-    
-    background-image: linear-gradient(to bottom, rgb(57, 67, 109), rgb(13, 21, 54));
-    justify-content: center;
+body main{
+  height: 100%;
+  margin: 0;
+  display: flex;
   
 
-    align-items: center;
-  }
-.test{
-    height: 10vh;
-    background-color:  rgb(62, 81, 167);
-    padding-top: 10px;
-    top: 0;
+
 }
+
+.test{
+  background-color:  rgb(62, 81, 167);
+}
+
 h1 {
-   
-    color: rgb(255, 255, 255);
-    margin-left: 10px;
-  }
+  
+  color: rgb(255, 255, 255);
+  margin: 0;
+  text-align: center;
+}
+
 .body{
-    width: 100vw;
-    height:calc(100vh - 10vh);
-    justify-content: center;
-    align-items: center;
+  width: 100vw;
+  height:calc(100vh - 10vh);
+  
+  
+}
 
-
+#simulation-wrapper {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 1em;
 }
 
 #simulation-window {
   border-radius: 25px;
+  width: max-content;
+  margin: 0;
+}
+
+#UI-window {
+  background-color: rgba(0, 0, 0, 0.3);
+  border-radius: 25px;
+  padding: 10px;
+  padding-left: 20px;
+  width: 60%;
+
+  display: flex;
+}
+
+.UI-tab {
+  display: flex;
+  flex-direction: column;
+  width: 33.3%;
+}
+
+.UI-tab input {
+  border-radius: 20px;
+  border: none;
+  outline: none;
+
+  font-family: 'Poppins', sans-serif;
+  font-size: 2em;
+
+  margin: 0.2em;
+  height: 1em;
+  padding: 0.2em;
+  padding-left: 2em;
+  background-color: rgb(88, 97, 148);
+  color: white;
+  transition: 0.1s;
+}
+
+.UI-tab input:focus {
+  transform: translateY(-0.2em);
 }
 
 #defaultCanvas0 {
