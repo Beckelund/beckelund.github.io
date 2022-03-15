@@ -23,10 +23,15 @@ function windowResized() {
 */
 
 //Physics settings
-const gravity = 9.82 * 0; //Scalar
+const gravity = 9.82 * 1000; //Scalar
+const gravity_on = false;
 
 //Friction
 const frictionCoef = 0.03;
+const friction_on = true;
+
+//ODE-solver
+const euler_on = true;
 
 //Elasticity
 const wall_elasticity = 0.75
@@ -45,53 +50,56 @@ class rigidObject{
     this.rotation = 0;
     this.rotationalVelocity = 0;
   }
-
-  /*
-  impulseResponce(collistionPoint,collistionObject){
-    var r_ap = collistionPoint.copy();
-    r_ap.sub(this.position);
-
-    var r_bp = collistionPoint.copy();
-    r_bp.sub(collistionObject.position);
-    
-    var PointVelocity_A = this.velocity.copy();
-    //PointVelocity_A.add(cross())
-    
-    if(1){//dynamic object collision
-      //impulse = -(1+this.elasticity)
-    } 
-  }
-  */
   
   UpdatePosition(){
-    let moveDist = this.velocity.copy()
-    moveDist.mult(deltaTime/1000)
+    if(euler_on == true)
+    {
+      this.PositionEuler();
+    }
+    else {
+      //RK4
+    }
+  }
+  
+  
+  PositionEuler() {
+    let moveDist = this.velocity.copy().mult(deltaTime/1000)
     this.position.add(moveDist)
   }
   
+  PositionRK4() {
+    let k1 = new createVector(0,0)
+    let k2 = new createVector(0,0)
+    let k3 = new createVector(0,0)
+    let k4 = new createVector(0,0)
+
+
+
+  }
+
   UpdateVelocity(){
 
-    //Acceleration calc
+    //Current change in velocity:
     let velChange = new createVector(0, 0);
 
     //Gravity
-    const gravity_vector = new createVector(0, gravity)
-    velChange.add(gravity_vector.copy().mult(deltaTime/1000))
+    if(gravity_on == true)
+    {
+      const gravity_vector = new createVector(0, gravity)
+      this.acceleration.add(gravity_vector.copy().mult(deltaTime/1000))
+    }
 
     //Friction
-    let direction = this.velocity.copy().normalize();
-    let friction = direction.copy().mult(9.82).mult(frictionCoef);
-    //console.log(friction)
+    if(friction_on == true)
+    {
+      let direction = this.velocity.copy().normalize();
+      let friction = direction.copy().mult(9.82).mult(frictionCoef);
+      velChange.sub(friction)
+    }
 
-    //Other Acceleration
+    //Apply Acceleration
     velChange.add(this.acceleration.mult(deltaTime/1000))
-
-    velChange.sub(friction)
-    this.acceleration.set(0,0)
-
-
     this.velocity.add(velChange)
-    this.velocity.mult(1)
   }
 }
 
@@ -167,7 +175,7 @@ class rigidSpherical extends rigidObject{
         line(0,0, this.velocity.x, this.velocity.y)
       pop()
 
-      //Write Speed
+      //Write Speed Text
       push()
         let speed_text = round(this.velocity.mag())
         textSize(this.radius)
@@ -196,13 +204,11 @@ function WallCollision(obj)
   //@TODO, gör att hastigheten ändras beroende på absolutbelopp
   if(obj.position.y + obj.radius > Y_SIZE)
   {
-    //console.log("Collision at " + theObjects[i].position.y)
     if(obj.velocity.y >= 0) obj.velocity.mult(1, -1 * wall_elasticity);
     obj.isCollideWall = true;
   }
   if(obj.position.y - obj.radius < 0)
   {
-    //console.log("Collision at " + theObjects[i].position.y)
     if(obj.velocity.y <= 0) obj.velocity.mult(1, -1 * wall_elasticity);
     obj.isCollideWall = true;
   }
@@ -381,10 +387,11 @@ function draw() {
   //Physics loop
   all_objects.forEach(element => element.UpdatePosition())
   all_objects.forEach(element => element.UpdateVelocity())
+
+  DetectCollisions(all_objects);
   
   
   //Collision Detection
-  DetectCollisions(all_objects);
   
   // Background
   setGradient(0, 0, X_SIZE, Y_SIZE, Y_AXIS);
@@ -393,8 +400,6 @@ function draw() {
   all_objects.forEach(element => element.RenderMe())
   
   //Mouse features
-  
-  //console.log(dragObject)
   let mouseVector = createVector(mouseX, mouseY)
   if(mouseIsPressed) {
     drawCursor()
@@ -425,7 +430,7 @@ function draw() {
   if(dragObject != null)
   {
     let v1 = p5.Vector.sub(mouseVector, dragObject.position)
-    dragObject.acceleration.set(v1.mult(10))
+    dragObject.acceleration.add(v1.mult(10))
     line(dragObject.position.x, dragObject.position.y, mouseX, mouseY)
   }
   
