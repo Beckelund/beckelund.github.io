@@ -340,12 +340,12 @@ function drawUI() {
   let spawnSize = createInput('20')
   spawnSize.parent("UI-tab1")
   spawnSize.input(setSpawnSize)
-
+  
   //Spawn Ball Mass
   let spawnMass = createInput('20')
   spawnMass.parent("UI-tab1")
   spawnMass.input(setSpawnMass)
-
+  
   //Tab 2
   let despawnAll = createButton('Remove all balls')
   despawnAll.parent("UI-tab2")
@@ -380,7 +380,8 @@ var frames = 0;
 var totalEnergy = 0;
 
 function draw() {
-  
+  clear()
+
   totalTime += deltaTime/1000;
   //console.log(totalTime)
   
@@ -390,11 +391,10 @@ function draw() {
 
   DetectCollisions(all_objects);
   
-  
+  setGradient(0, 0, X_SIZE, Y_SIZE, Y_AXIS);
   //Collision Detection
   
   // Background
-  setGradient(0, 0, X_SIZE, Y_SIZE, Y_AXIS);
   
   //Render loop
   all_objects.forEach(element => element.RenderMe())
@@ -450,6 +450,7 @@ function draw() {
   
   push()
   textSize(16)
+  textFont('Poppins')
   fill('white')
   text('total energy: ' + energyDisplay, 10, 30)
   pop()
