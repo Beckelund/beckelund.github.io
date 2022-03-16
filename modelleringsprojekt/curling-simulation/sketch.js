@@ -107,7 +107,6 @@ class rigidSpherical extends rigidObject{
   constructor(mass, pos, vel, color, radius){
     super(mass, pos, vel, color);
     this.radius = radius;
-    this.inv_Momevt_of_inertia = radius*radius*mass*0.5;
 
     this.isCollideWall = false;
     this.isCollideBall = false;
@@ -332,19 +331,16 @@ var UI_color_random = true;
 
 function drawUI() {
 
-  //Tab 1
-  let rSlider = createSlider(0, 255, 100);
-  rSlider.parent("UI-tab1")
+  //Tab 1 title
+  createElement('h2', 'Spawn ball settings').parent("UI-tab1")
 
   //Spawn Ball size
-  let spawnSize = createInput('20')
-  spawnSize.parent("UI-tab1")
-  spawnSize.input(setSpawnSize)
-  
+  createElement('h3', 'Ball radius (m)').parent("UI-tab1")
+  createInput('20').parent("UI-tab1").input(setSpawnSize)
+
   //Spawn Ball Mass
-  let spawnMass = createInput('20')
-  spawnMass.parent("UI-tab1")
-  spawnMass.input(setSpawnMass)
+  createElement('h3', 'Ball Mass (kg)').parent("UI-tab1")
+  createInput('20').parent("UI-tab1").input(setSpawnMass)
   
   //Tab 2
   let despawnAll = createButton('Remove all balls')
