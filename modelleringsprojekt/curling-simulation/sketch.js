@@ -329,7 +329,7 @@ function drawUI() {
   //Remove all button
   createButton('Remove all balls').parent("UI-tab2").mousePressed(DespawnAll)
   createButton("Newton's cradle").parent("UI-tab2").mousePressed(NewtonsCradle)
-  createButton('Spawn 10 random').parent("UI-tab2").mousePressed(Spawn10Random)
+  createButton('Spawn 5 random').parent("UI-tab2").mousePressed(Spawn5Random)
 }
 
 function setSpawnSize() {UI_radius = Number(this.value())}
@@ -366,7 +366,7 @@ function NewtonsCradle() {
   }
 }
 
-function Spawn10Random() {
+function Spawn5Random() {
   const spawnAmount = 5;
 
   spawnQueueSize += spawnAmount;
