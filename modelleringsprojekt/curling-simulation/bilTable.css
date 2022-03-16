@@ -83,8 +83,7 @@ h1 {
   color: var(--main-color2);
 }
 
-.UI-tab input {
-  border-radius: 20px;
+.UI-tab input, button{
   border: none;
   outline: none;
 
@@ -92,16 +91,29 @@ h1 {
   font-size: 2em;
 
   margin: 0.2em;
-  height: 1em;
   padding: 0.2em;
-  padding-left: 15%;
+  
   background-color: rgb(88, 97, 148);
   color: var(--main-color2);
-  transition: 0.1s;
+  transition: 0.5s cubic-bezier(.13,1.9,.14,.87);
+}
+
+.UI-tab input {
+  border-radius: 0.75em;
+  padding-left: 15%;
+  height: 1em;
 }
 
 .UI-tab input:focus {
-  transform: translateY(-0.2em);
+  transform: translateY(-0.15em);
+}
+
+.UI-tab button {
+  border-radius: 0.25em;
+}
+
+.UI-tab button:hover {
+  background-color: rgb(103, 113, 172);
 }
 
 #defaultCanvas0 {

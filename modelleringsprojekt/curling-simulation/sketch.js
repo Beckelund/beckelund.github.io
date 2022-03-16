@@ -37,6 +37,9 @@ const euler_on = true;
 const wall_elasticity = 0.75
 const ball_elasticity = 0.99
 
+//Audio
+const audio_on = false;
+
 //New Classes
 class rigidObject{
   constructor(mass, position, velocity, color){
@@ -110,9 +113,9 @@ class rigidSpherical extends rigidObject{
 
     this.isCollideWall = false;
     this.isCollideBall = false;
-  }
-  
 
+    this.lifeTime = 0.0; //Starting scale when spawned
+  }
 
   RenderMe() {
     push()
@@ -133,7 +136,14 @@ class rigidSpherical extends rigidObject{
     */
 
     translate(this.position.x, this.position.y);
-    
+
+    let currentScale = this.lifeTime;
+    if(currentScale < 1.0)
+    {
+      scale(currentScale)
+      this.lifeTime += (deltaTime/1000) * 10;
+    }
+
     //Outer circle
     push()
       fill(color1)
@@ -254,22 +264,24 @@ function SphereCollision(objA, objB)
       objB.velocity.sub(impulse * objA.mass * normalVector.x, impulse * objA.mass * normalVector.y)
       
       //Play sound
-      const max_volume = 0.01;
-      let collide_volume = (objA.radius + objB.radius)/500;
-      if(collide_volume > max_volume) collide_volume = max_volume;
-      
-      if(speed > 100)
+      if(audio_on == true)
       {
-        console.log(round(speed) + " gives volume: " + collide_volume)
-        sound_collision.setVolume(collide_volume);
-        sound_collision.play();
+        const max_volume = 0.01;
+        let collide_volume = (objA.radius + objB.radius)/500;
+        if(collide_volume > max_volume) collide_volume = max_volume;
+        
+        if(speed > 100)
+        {
+          console.log(round(speed) + " gives volume: " + collide_volume)
+          sound_collision.setVolume(collide_volume);
+          sound_collision.play();
+        }
       }
     }
   }
 }
 
 
-let all_objects = new Array();
 
 //Sound Preload
 
@@ -281,51 +293,20 @@ function preload() {
   //https://freesound.org/people/jayroo9/sounds/?page=3#sound
 }
 
+let all_objects = new Array();
+
 function setup() {
-  
   textFont('Helvetica')
-  /*
-  let circlePos = new createVector(100, 100)
-  let circleVel = new createVector(20, 10)
-  let circleColor = color(255, 204, 170)
-  
-  all_objects.push(new rigidSpherical(1.0, circlePos, circleVel, circleColor, 20.0))
-  */
- 
- let circlePos1 = new createVector(100, 100)
- let circleVel1 = new createVector(250, 0)
- let circleColor1 = new createVector(255, 100, 100)
- 
- all_objects.push(new rigidSpherical(1.0, circlePos1, circleVel1, circleColor1, 10.0))
- 
- let circlePos2 = new createVector(300, 100)
- let circleVel2 = new createVector(0, 0)
- let circleColor2 = new createVector(255, 204, 170)
- 
- all_objects.push(new rigidSpherical(1.0, circlePos2, circleVel2, circleColor2, 10.0))
- 
- let circlePos3 = new createVector(321, 100)
- let circleVel3 = new createVector(0, 0)
- let circleColor3 = new createVector(255, 204, 170)
- 
- all_objects.push(new rigidSpherical(1.0, circlePos3, circleVel3, circleColor3, 10.0))
- 
- let circlePos4 = new createVector(342, 100)
- let circleVel4 = new createVector(0, 0)
- let circleColor4 = new createVector(255, 204, 170)
- 
- all_objects.push(new rigidSpherical(1.0, circlePos4, circleVel4, circleColor4, 10.0))
- 
- 
- let window = createCanvas(X_SIZE, Y_SIZE);
- window.parent("simulation-window")
- document.addEventListener('contextmenu', event => event.preventDefault());
- 
- drawUI();
+  let window = createCanvas(X_SIZE, Y_SIZE);
+  window.parent("simulation-window")
+  document.addEventListener('contextmenu', event => event.preventDefault());
+
+  NewtonsCradle();
+  drawUI();
 }
 
-var UI_radius = 20;
-var UI_mass = 20;
+var UI_radius = 35;
+var UI_mass = 35;
 
 var UI_color_random = true;
 
@@ -336,22 +317,81 @@ function drawUI() {
 
   //Spawn Ball size
   createElement('h3', 'Ball radius (m)').parent("UI-tab1")
-  createInput('20').parent("UI-tab1").input(setSpawnSize)
+  createInput('35').parent("UI-tab1").input(setSpawnSize)
 
   //Spawn Ball Mass
   createElement('h3', 'Ball Mass (kg)').parent("UI-tab1")
-  createInput('20').parent("UI-tab1").input(setSpawnMass)
+  createInput('35').parent("UI-tab1").input(setSpawnMass)
   
-  //Tab 2
-  let despawnAll = createButton('Remove all balls')
-  despawnAll.parent("UI-tab2")
-  despawnAll.mousePressed(DespawnAll)
+  //Tab 2 title
+  createElement('h2', 'Scenarios').parent("UI-tab2")
+
+  //Remove all button
+  createButton('Remove all balls').parent("UI-tab2").mousePressed(DespawnAll)
+  createButton("Newton's cradle").parent("UI-tab2").mousePressed(NewtonsCradle)
+  createButton('Spawn 10 random').parent("UI-tab2").mousePressed(Spawn10Random)
 }
 
 function setSpawnSize() {UI_radius = Number(this.value())}
 function setSpawnMass() {UI_mass = Number(this.value())}
 
-function DespawnAll() {all_objects = new Array()}
+function DespawnAll() {
+  all_objects = new Array()
+}
+
+function NewtonsCradle() {
+  //Settings
+  let color1 = new createVector(255, 100, 100);
+  let color2 = new createVector(255, 204, 170);
+
+  const middleBallAmount = 4;
+
+  //Pushing Ball
+  let circlePos1 = new createVector(UI_radius, Y_SIZE/2)
+  let circleVel1 = new createVector(300, 0)
+  let circleColor1 = new createVector(255, 100, 100)
+  all_objects.push(new rigidSpherical(UI_mass, circlePos1, circleVel1, circleColor1, UI_radius))
+
+  //Middle Balls
+  const middlePos = createVector(X_SIZE/2, Y_SIZE/2);
+  const middleLeftOffset = middlePos.x - UI_radius * (middleBallAmount - 1)
+  const middleDistance = UI_radius * 2;
+
+  for(let i = 0; i < middleBallAmount; i++)
+  {
+    let circlePos = new createVector(middleLeftOffset + middleDistance * i, middlePos.y)
+    let circleVel = new createVector(0, 0)
+    let circleColor = color2.copy()
+    all_objects.push(new rigidSpherical(UI_mass, circlePos, circleVel, circleColor, UI_radius))
+  }
+}
+
+function Spawn10Random() {
+  const spawnAmount = 5;
+
+  spawnQueueSize += spawnAmount;
+}
+
+function SpawnRandom() {
+
+  //Spawn Velocity
+  const spawnVelocity = 200;
+  let circleVel = new createVector(random(-spawnVelocity, spawnVelocity), random(-spawnVelocity, spawnVelocity))
+
+  //Spawn Color
+  let circleColor = new createVector(255, 255, 255); 
+  if(UI_color_random == true) circleColor = new createVector(random(255), random(255), random(255))
+
+  //Spawn Position
+  let circlePos = new createVector(random(UI_radius+0, X_SIZE-UI_radius), random(UI_radius+0, Y_SIZE-UI_radius))
+
+  //Spawn Radius
+  const radiusDiff = UI_radius*0.5;
+  let circleRadius = random(UI_radius-radiusDiff, UI_radius+radiusDiff)
+
+  let circleMass = UI_mass
+  all_objects.push(new rigidSpherical(circleMass, circlePos, circleVel, circleColor, circleRadius))
+}
 
 function mousePressed() {
   if(mouseButton === RIGHT)
@@ -369,33 +409,61 @@ function mousePressed() {
   }
 }
 
-var dragObject = null;
-var hasObject = false;
+
+
 
 var frames = 0;
-var totalEnergy = 0;
-
 function draw() {
   clear()
-
+  
+  //Time & frame updates
   totalTime += deltaTime/1000;
-  //console.log(totalTime)
+  frames++;
+  
+  //Spawn Que
+  SpawnQueue()
   
   //Physics loop
   all_objects.forEach(element => element.UpdatePosition())
   all_objects.forEach(element => element.UpdateVelocity())
-
+  
+  //Collision Detection
   DetectCollisions(all_objects);
   
-  setGradient(0, 0, X_SIZE, Y_SIZE, Y_AXIS);
-  //Collision Detection
-  
   // Background
+  setGradient(0, 0, X_SIZE, Y_SIZE, Y_AXIS);
   
   //Render loop
   all_objects.forEach(element => element.RenderMe())
   
   //Mouse features
+  DragObject()
+  
+  //Display Info
+  DisplayEnergy()
+  DisplayFPS()
+}
+
+var spawnQueueSize = 0;
+var lastSpawnTime = 0.0;
+function SpawnQueue() {
+
+  if(spawnQueueSize > 0)
+  {
+    const spawnDelay = 0.05;
+    lastSpawnTime += deltaTime/1000;
+
+    if(lastSpawnTime > spawnDelay)
+    {
+      lastSpawnTime -= spawnDelay;
+      SpawnRandom()
+      spawnQueueSize--;
+    }
+  }
+}
+
+var dragObject = null;
+function DragObject() {
   let mouseVector = createVector(mouseX, mouseY)
   if(mouseIsPressed) {
     drawCursor()
@@ -429,39 +497,63 @@ function draw() {
     dragObject.acceleration.add(v1.mult(10))
     line(dragObject.position.x, dragObject.position.y, mouseX, mouseY)
   }
-  
-
-  frames++;
-  //Display energy
-  if(frames % 5 == 0)
-  {
-    totalEnergy = 0;
-    all_objects.forEach(element => totalEnergy += (1/2)*element.mass*element.velocity.mag()*element.velocity.mag())
-  }
-  
-  
-  let energyDisplay = 0;
-  if(totalEnergy > 1000) energyDisplay = Math.round(totalEnergy/1000) + " K"
-  else energyDisplay = Math.round(totalEnergy)
-  
-  push()
-  textSize(16)
-  textFont('Poppins')
-  fill('white')
-  text('total energy: ' + energyDisplay, 10, 30)
-  pop()
 }
-
 
 function drawCursor() {
   push()
   fill(color(100,100,150,100))
   strokeWeight(0)
   circle(mouseX, mouseY, 20)
-  pop()
-  
+  pop() 
 }
 
+var totalEnergy = 0;
+function DisplayEnergy() {
+
+  //Calculate the total energy
+  if(frames % 5 == 0)
+  {
+    totalEnergy = 0;
+    all_objects.forEach(element => totalEnergy += (1/2)*element.mass*element.velocity.mag()*element.velocity.mag())
+  }
+  
+  //Round the vales
+  let energyDisplay = 0;
+  if(totalEnergy > 1000) energyDisplay = Math.round(totalEnergy/1000) + " K"
+  else energyDisplay = Math.round(totalEnergy)
+  
+  //Print energy text
+  push()
+    textSize(16)
+    textFont('Poppins')
+    fill('white')
+    text('total energy: ' + energyDisplay, 10, 30)
+  pop()
+}
+
+var LatestFPS = []
+var frameIndex = 0;
+function DisplayFPS() {
+  
+  //Handle frame array
+  const maxFrameTrackAmount = 10;
+  if(frameIndex >= maxFrameTrackAmount) frameIndex = 0;
+  LatestFPS[frameIndex] = 1/(deltaTime/1000);
+  frameIndex++;
+
+  //Calculate average FPS
+  let averageFPS = 0.0;
+  LatestFPS.forEach(element => averageFPS = averageFPS + element);
+  averageFPS /= maxFrameTrackAmount;
+
+  //Print FPS text
+  push()
+    textSize(16)
+    textFont('Poppins')
+    fill('white')
+    text('Average FPS: ' + round(averageFPS), 10, 60)
+  pop()
+}
 
 function setGradient(x, y, w, h, axis) {
   noFill();
