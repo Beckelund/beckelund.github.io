@@ -23,19 +23,19 @@ function windowResized() {
 */
 
 //Physics settings
-const gravity = 9.82 * 1000; //Scalar
-const gravity_on = false;
+var gravity = 0; //Scalar
+const gravity_on = true;
 
 //Friction
-const frictionCoef = 0.03;
+var frictionCoef = 0.03;
 const friction_on = true;
 
 //ODE-solver
 const euler_on = true;
 
 //Elasticity
-const wall_elasticity = 0.75
-const ball_elasticity = 0.99
+var wall_elasticity = 0.75
+var ball_elasticity = 0.99
 
 //Audio
 const audio_on = false;
@@ -326,14 +326,37 @@ function drawUI() {
   //Tab 2 title
   createElement('h2', 'Scenarios').parent("UI-tab2")
 
-  //Remove all button
+  //Scenarios
   createButton('Remove all balls').parent("UI-tab2").mousePressed(DespawnAll)
   createButton("Newton's cradle").parent("UI-tab2").mousePressed(NewtonsCradle)
   createButton('Spawn 5 random').parent("UI-tab2").mousePressed(Spawn5Random)
+  createButton('"Bully"').parent("UI-tab2").mousePressed(Bully)
+  createButton('"Bully Beatdown"').parent("UI-tab2").mousePressed(BullyBeatdown)
+  createButton('"Water simulation?"').parent("UI-tab2").mousePressed(WaterSim)
+
+  //Tab 3 title
+  createElement('h2', 'Rules').parent("UI-tab3")
+
+  //Frictional coefficient
+  createElement('h3', 'Frictional Coefficient (\u03BC)').parent("UI-tab3")
+  createInput('0.03').parent("UI-tab3").input(setFriction)
+
+  //Gravity
+  createElement('h3', 'Downwards Gravity (m/s^2)').parent("UI-tab3")
+  createInput('0').parent("UI-tab3").input(setGravity)
+
+  //Body Elasticity
+  createElement('h3', 'Elasticity, Bodies').parent("UI-tab3")
+  createInput('0.99').parent("UI-tab3").input(setElasticityBody)
+
+  //Wall Elasticity
+  createElement('h3', 'Elasticity, Walls ()').parent("UI-tab3")
+  createInput('0.75').parent("UI-tab3").input(setElasticityWall)
 }
 
 function setSpawnSize() {UI_radius = Number(this.value())}
 function setSpawnMass() {UI_mass = Number(this.value())}
+
 
 function DespawnAll() {
   all_objects = new Array()
@@ -372,6 +395,55 @@ function Spawn5Random() {
   spawnQueueSize += spawnAmount;
 }
 
+function Bully() {
+  let oldRadius = UI_radius;
+  let oldMass = UI_mass;
+
+  UI_radius = 150
+  UI_mass = 10000
+
+  SpawnRandom()
+
+  UI_radius = 10
+  UI_mass = 10
+
+  for(let i = 0; i < 30; i++) SpawnRandom();
+
+  UI_radius = oldRadius
+  UI_mass = oldMass
+}
+
+function BullyBeatdown() {
+  let oldRadius = UI_radius;
+  let oldMass = UI_mass;
+
+  UI_radius = 15
+  UI_mass = 10000
+
+  SpawnRandom()
+
+  UI_radius = 60
+  UI_mass = 10
+
+  for(let i = 0; i < 5; i++) SpawnRandom();
+
+  UI_radius = oldRadius
+  UI_mass = oldMass
+}
+
+function WaterSim() {
+  let oldRadius = UI_radius;
+  let oldMass = UI_mass;
+
+  UI_radius = 15
+  UI_mass = 10
+
+  for(let i = 0; i < 100; i++) SpawnRandom();
+
+  UI_radius = oldRadius
+  UI_mass = oldMass
+}
+
 function SpawnRandom() {
 
   //Spawn Velocity
@@ -386,7 +458,7 @@ function SpawnRandom() {
   let circlePos = new createVector(random(UI_radius+0, X_SIZE-UI_radius), random(UI_radius+0, Y_SIZE-UI_radius))
 
   //Spawn Radius
-  const radiusDiff = UI_radius*0.5;
+  const radiusDiff = UI_radius*0.25;
   let circleRadius = random(UI_radius-radiusDiff, UI_radius+radiusDiff)
 
   let circleMass = UI_mass
@@ -409,8 +481,10 @@ function mousePressed() {
   }
 }
 
-
-
+function setFriction() {frictionCoef = Number(this.value())}
+function setGravity() {gravity = Number(this.value())}
+function setElasticityBody() {ball_elasticity = Number(this.value())}
+function setElasticityWall() {wall_elasticity = Number(this.value())}
 
 var frames = 0;
 function draw() {
